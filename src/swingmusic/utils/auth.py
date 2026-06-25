@@ -6,6 +6,19 @@ from flask_jwt_extended import current_user
 from swingmusic.config import UserConfig
 from swingmusic.logger import log
 
+# Usernames that may only be created through dedicated endpoints (e.g. the
+# guest user via /auth/profile/guest/create), never via normal create/rename.
+RESERVED_USERNAMES = {"guest"}
+
+
+def is_reserved_username(username: str) -> bool:
+    """
+    Returns True if the given username is reserved and therefore cannot be used
+    for normal account creation or renaming. Matching is case-insensitive and
+    ignores surrounding whitespace.
+    """
+    return (username or "").strip().casefold() in RESERVED_USERNAMES
+
 
 def hash_password(password: str, serverId: str = None) -> str:
     """

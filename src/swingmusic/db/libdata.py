@@ -79,3 +79,8 @@ class TrackTable(Base):
     def remove_tracks_by_filepaths(cls, filepaths: set[str]):
         with DbEngine.manager(commit=True) as conn:
             conn.execute(delete(TrackTable).where(TrackTable.filepath.in_(filepaths)))
+
+    @classmethod
+    def reset(cls):
+        with DbEngine.manager(commit=True) as conn:
+            conn.execute(delete(cls))

@@ -30,8 +30,8 @@ class CordinateMedia:
     Cordinates the extracting of thumbnails
     """
 
-    def __init__(self, instance_key: str):
-        ProcessTrackThumbnails()
+    def __init__(self, instance_key: str, overwrite_track_thumbnails: bool = False):
+        ProcessTrackThumbnails(overwrite_track_thumbnails=overwrite_track_thumbnails)
         ProcessAlbumColors()
         ProcessArtistColors()
 
@@ -58,7 +58,7 @@ class CordinateMedia:
             FetchSimilarArtistsLastFM()
 
 
-def get_image(tracks: list[Track], paths=None):
+def get_image(tracks: list[Track], paths=None, overwrite_track_thumbnails: bool = False):
     """
     The function retrieves an image from a list of tracks by extracting the thumbnail from the first track that has one.
 
@@ -68,7 +68,7 @@ def get_image(tracks: list[Track], paths=None):
     """
 
     for track in tracks:
-        extracted = extract_thumb(track.filepath, track.albumhash + ".webp", paths)
+        extracted = extract_thumb(track.filepath, track.albumhash + ".webp", overwrite=overwrite_track_thumbnails, paths=paths)
 
         if extracted:
             return
@@ -79,7 +79,7 @@ class ProcessTrackThumbnails:
     Extracts the album art from all albums in album store.
     """
 
-    def extract(self, albums: list[Album]):
+    def extract(self, albums: list[Album], overwrite_track_thumbnails: bool):
         """
         Extracts the album art with platform-specific logic.
         """
@@ -90,7 +90,11 @@ class ProcessTrackThumbnails:
 
         # Create process pool with worker function
         with mp.Pool(processes=cpus) as pool:
-            worker = functools.partial(get_image, paths=settings.Paths())
+            worker = functools.partial(
+                get_image,
+                paths=settings.Paths(),
+                overwrite_track_thumbnails=overwrite_track_thumbnails,
+            )
             # Process files and track progress
 
             results = list(
@@ -103,7 +107,7 @@ class ProcessTrackThumbnails:
 
             list(results)
 
-    def __init__(self) -> None:
+    def __init__(self, overwrite_track_thumbnails: bool) -> None:
         """
         Filters out albums that already have thumbnails and
         extracts the thumbnail for the other albums.
@@ -119,7 +123,7 @@ class ProcessTrackThumbnails:
         )
 
         albums = list(albums)
-        self.extract(albums)
+        self.extract(albums, overwrite_track_thumbnails=overwrite_track_thumbnails)
 
 
 def save_similar_artists(artist: Artist):

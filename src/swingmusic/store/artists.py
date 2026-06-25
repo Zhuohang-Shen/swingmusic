@@ -175,3 +175,10 @@ class ArtistStore:
                 for a in cls.get_flat_list()
             ]
             json.dump(data, f)
+
+    @classmethod
+    def reset(cls):
+        """
+        Resets the artist store.
+        """
+        cls.artistmap = dict()

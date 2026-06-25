@@ -339,6 +339,8 @@ def get_start_range(range_header: str):
 class GetAudioSilenceBody(BaseModel):
     ending_file: str = Field(description="The ending file's path")
     starting_file: str = Field(description="The beginning file's path")
+    ending_trackhash: str = Field(description="The ending file's trackhash")
+    starting_trackhash: str = Field(description="The beginning file's trackhash")
 
 
 @api.post("/silence")
@@ -353,7 +355,11 @@ def get_audio_silence(body: GetAudioSilenceBody):
     ending_file = body.ending_file  # ending file's filepath
     starting_file = body.starting_file  # starting file's filepath
 
-    if ending_file is None or starting_file is None:
-        return {"msg": "No filepath provided"}, 400
+    if not TrackStore.is_valid_track_filepath(
+        body.ending_trackhash, ending_file
+    ) or not TrackStore.is_valid_track_filepath(
+        body.starting_trackhash, starting_file
+    ):
+        return {"msg": "Invalid filepath"}, 400
 
     return get_silence_paddings(ending_file, starting_file)

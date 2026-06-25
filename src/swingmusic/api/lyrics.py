@@ -4,6 +4,7 @@ from pydantic import Field
 
 from swingmusic.store.tracks import TrackStore
 from swingmusic.api.apischemas import TrackHashSchema
+from swingmusic.utils.paths import is_path_within_root_dirs
 from swingmusic.lib.lyrics import (
     get_lyrics_file,
     get_lyrics_from_duplicates,
@@ -30,6 +31,9 @@ def send_lyrics(body: SendLyricsBody):
 
     filepath = body.filepath
     trackhash = body.trackhash
+
+    if filepath and not is_path_within_root_dirs(filepath):
+        return {"error": "No lyrics found"}
 
     # get copyright first
     copyright = ""

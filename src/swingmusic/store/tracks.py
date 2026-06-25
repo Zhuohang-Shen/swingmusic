@@ -2,6 +2,7 @@
 
 import itertools
 import json
+from pathlib import Path
 from typing import Callable, Iterable
 from swingmusic.db.libdata import TrackTable
 
@@ -188,6 +189,18 @@ class TrackStore:
         return len(cls.trackhashmap.get(trackhash, []))
 
     @classmethod
+    def is_valid_track_filepath(cls, trackhash: str, filepath: str) -> bool:
+        """
+        Returns True only if `filepath` belongs to an indexed track.
+        """
+        group = cls.trackhashmap.get(trackhash, None)
+        if group is None:
+            return False
+
+        target = Path(filepath).resolve()
+        return any(Path(track.filepath).resolve() == target for track in group.tracks)
+
+    @classmethod
     def get_tracks_by_trackhashes(cls, trackhashes: Iterable[str]) -> list[Track]:
         """
         Returns a list of tracks by their hashes.
@@ -331,3 +344,10 @@ class TrackStore:
                 for t in cls.get_flat_list()
             ]
             json.dump(data, f)
+
+    @classmethod
+    def reset(cls):
+        """
+        Resets the track store.
+        """
+        cls.trackhashmap = dict()

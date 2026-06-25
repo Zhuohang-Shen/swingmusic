@@ -1,25 +1,27 @@
-from dataclasses import asdict
 from typing import Any
 from flask_openapi3 import Tag
 from flask_openapi3 import APIBlueprint
-from pydantic import BaseModel, Field
-from swingmusic.api.auth import admin_required
 
-from swingmusic.db.userdata import PluginTable
+from dataclasses import asdict
+from pydantic import BaseModel, Field
+
 from swingmusic.premium import (
-    CloudAuthError,
     CloudError,
-    LicenseError,
-    LicenseManager,
     CloudClient,
+    LicenseError,
+    CloudAuthError,
+    LicenseManager,
 )
-from swingmusic.lib.index import index_everything
 from swingmusic.config import UserConfig
-from swingmusic.store.general import GeneralStore
 from swingmusic.settings import Metadata
+from swingmusic.db.userdata import PluginTable
+from swingmusic.store.general import GeneralStore
+
+from swingmusic.api.auth import admin_required
+from swingmusic.lib.index import index_everything
+from swingmusic.utils.paths import normalize_paths
 from swingmusic.utils.auth import get_current_userid
 from swingmusic.utils.hardware_id import get_device_id, get_device_name
-from swingmusic.utils.paths import normalize_paths
 
 # Error payload returned by premium-gated endpoints when the compiled
 # premium module is not shipped in this build (free-tier / OSS clone).
@@ -131,13 +133,28 @@ class SetSettingBody(BaseModel):
         example=",",
     )
 
-
 @api.get("/trigger-scan")
-def trigger_scan():
+def trigger_scan_get():
+    """
+    Triggers scan for new music (deprecated, use /trigger-scan POST instead).
+    
+    For already indexed files, will only re-scan changed files.
+    """
+    index_everything(full_scan=False)
+    return {"msg": "Scan triggered!"}
+
+class TriggerScanBody(BaseModel):
+    full_scan: bool = Field(
+        description="Whether to perform a full scan of the root directories",
+        example=False,
+    )
+
+@api.post("/trigger-scan")
+def trigger_scan(body: TriggerScanBody):
     """
     Triggers scan for new music
     """
-    index_everything()
+    index_everything(full_scan=body.full_scan)
     return {"msg": "Scan triggered!"}
 
 

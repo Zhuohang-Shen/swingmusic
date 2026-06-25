@@ -18,7 +18,11 @@ from swingmusic.config import UserConfig
 from swingmusic.db.userdata import UserTable
 from swingmusic.store.general import GeneralStore
 from swingmusic.store.homepage import HomepageStore
-from swingmusic.utils.auth import check_password, hash_password
+from swingmusic.utils.auth import (
+    check_password,
+    hash_password,
+    is_reserved_username,
+)
 
 bp_tag = Tag(name="Auth", description="Authentication stuff")
 api = APIBlueprint("auth", __name__, url_prefix="/auth", abp_tags=[bp_tag])
@@ -166,17 +170,33 @@ def update_profile(body: UpdateProfileBody):
         "roles": body.roles,
     }
 
-    # prevent updating guest
-    if current_user["username"] == "guest" or user["username"] == "guest":
+    # the guest account may not perform any update
+    if "guest" in current_user["roles"] or is_reserved_username(
+        current_user["username"]
+    ):
         return {"msg": "Cannot update guest user"}, 400
 
-    # if not id, update self
     if not user["id"]:
         user["id"] = current_user["id"]
 
+    is_admin = "admin" in current_user["roles"]
+    if user["id"] != current_user["id"] and not is_admin:
+        return {"msg": "You can only update your own profile"}, 403
+
+    target = UserTable.get_by_id(user["id"])
+    if target is None:
+        return {"msg": "User not found"}, 404
+
+    if "guest" in target.roles or is_reserved_username(target.username):
+        return {"msg": "Cannot update guest user"}, 400
+
+    # prevent renaming any account to a reserved username (e.g. "guest")
+    if is_reserved_username(user["username"]):
+        return {"msg": "Cannot update guest user"}, 400
+
     if body.roles is not None:
         # only admins can update roles
-        if "admin" not in current_user["roles"]:
+        if not is_admin:
             return {"msg": "Only admins can update roles"}, 403
 
         all_users = list(UserTable.get_all())
@@ -186,11 +206,6 @@ def update_profile(body: UpdateProfileBody):
 
             if len(admins) == 1 and admins[0].id == user["id"]:
                 return {"msg": "Cannot remove the only admin"}, 400
-
-        # guest roles cannot be updated
-        _user = [u for u in all_users if u.id == user["id"]][0]
-        if "guest" in _user.roles:
-            return {"msg": "Cannot update guest user"}, 400
 
     if user["password"]:
         user["password"] = hash_password(user["password"])
@@ -218,6 +233,9 @@ def create_user(body: UpdateProfileBody):
     """
     Create a new user
     """
+    if is_reserved_username(body.username):
+        return {"msg": "Username 'guest' is reserved"}, 400
+
     # INFO: If there are no existing users in the database, add the new user as admin
     users = UserTable.get_all()
     if not list(users):

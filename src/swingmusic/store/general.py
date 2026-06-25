@@ -11,6 +11,7 @@ class GeneralStore:
     admin_exists: bool = False
     root_dirs_set: bool = False
     scan_message: str = ""
+    full_scan_in_progress: bool = False
 
     @classproperty
     def onboarding_complete(cls):
@@ -29,3 +30,19 @@ class GeneralStore:
 
         if UserConfig().rootDirs:
             cls.root_dirs_set = True
+
+    @classmethod
+    def start_full_scan(cls):
+        """
+        Starts a full scan.
+        """
+        cls.full_scan_in_progress = True
+        cls.scan_message = "Full scan in progress... This may take a while."
+
+    @classmethod
+    def end_full_scan(cls):
+        """
+        Ends a full scan.
+        """
+        cls.full_scan_in_progress = False
+        cls.scan_message = ""

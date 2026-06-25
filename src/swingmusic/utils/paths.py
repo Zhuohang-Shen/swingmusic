@@ -1,6 +1,29 @@
 import os
 from pathlib import Path
+
 from swingmusic.settings import Paths
+from swingmusic.config import UserConfig
+
+
+def is_path_within_root_dirs(filepath: str) -> bool:
+    """
+    Check if a filepath is within one of the configured root directories.
+    Prevents directory traversal attacks.
+    """
+    config = UserConfig()
+    resolved_path = Path(filepath).resolve()
+
+    for root_dir in config.rootDirs:
+        if root_dir == "$home":
+            root_path = Path.home().resolve()
+        else:
+            root_path = Path(root_dir).resolve()
+
+        # Check if resolved_path is the root or a child of root
+        if resolved_path == root_path or root_path in resolved_path.parents:
+            return True
+
+    return False
 
 
 def get_client_files_extensions():

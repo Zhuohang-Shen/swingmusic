@@ -23,30 +23,10 @@ from swingmusic.utils.wintools import is_windows
 from swingmusic.db.userdata import FavoritesTable, PlaylistTable
 from swingmusic.lib.folderslib import get_files_and_dirs, get_folders
 from swingmusic.serializers.track import serialize_track, serialize_tracks
+from swingmusic.utils.paths import is_path_within_root_dirs
 
 tag = Tag(name="Folders", description="Get folders and tracks in a directory")
 api = APIBlueprint("folder", __name__, url_prefix="/folder", abp_tags=[tag])
-
-
-def is_path_within_root_dirs(filepath: str) -> bool:
-    """
-    Check if a filepath is within one of the configured root directories.
-    Prevents directory traversal attacks.
-    """
-    config = UserConfig()
-    resolved_path = Path(filepath).resolve()
-
-    for root_dir in config.rootDirs:
-        if root_dir == "$home":
-            root_path = Path.home().resolve()
-        else:
-            root_path = Path(root_dir).resolve()
-
-        # Check if resolved_path is the root or a child of root
-        if resolved_path == root_path or root_path in resolved_path.parents:
-            return True
-
-    return False
 
 
 class FolderTree(BaseModel):

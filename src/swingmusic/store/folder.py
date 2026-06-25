@@ -75,6 +75,14 @@ class FolderStore:
             ]
 
         return results
+    
+    @classmethod
+    def reset(cls):
+        """
+        Resets the folder store.
+        """
+        cls.filepaths.clear()
+        cls.map.clear()
 
 
 def get_index_of_first_match(paths: list[str], prefix: str) -> int:

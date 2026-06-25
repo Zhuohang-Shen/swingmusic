@@ -1,25 +1,58 @@
 import gc
 import logging
 from time import time
-from swingmusic.lib.mapstuff import (
-    map_album_colors,
-    map_artist_colors,
-    map_favorites,
-    map_scrobble_data,
-)
+
+from swingmusic.db.libdata import TrackTable
+from swingmusic.lib.tagger import IndexTracks
 from swingmusic.lib.populate import CordinateMedia
 from swingmusic.lib.recipes.recents import RecentlyAdded
-from swingmusic.lib.tagger import IndexTracks
+
 from swingmusic.store.albums import AlbumStore
-from swingmusic.store.artists import ArtistStore
-from swingmusic.store.folder import FolderStore
 from swingmusic.store.tracks import TrackStore
+from swingmusic.store.folder import FolderStore
+from swingmusic.store.artists import ArtistStore
+from swingmusic.store.general import GeneralStore
+
+from swingmusic.lib.mapstuff import (
+    map_favorites,
+    map_album_colors,
+    map_scrobble_data,
+    map_artist_colors,
+)
 from swingmusic.utils.threading import background
 
 log = logging.getLogger(__name__)
 
+
+def prepare_full_scan():
+    """
+    Prepares the server state for a full scan.
+
+    Drops the tracks db table.
+    Resets in-memory stores.
+    Does NOT remove scrobbles, favorites, playlists, collections, and other user data.
+    """
+
+    TrackTable.reset()
+    TrackStore.reset()
+    ArtistStore.reset()
+    AlbumStore.reset()
+    FolderStore.reset()
+
+    GeneralStore.start_full_scan()
+
+
 @background
-def index_everything():
+def index_everything(full_scan: bool = False):
+    """
+    Indexes everything.
+
+    :param full_scan: Whether to perform a full scan of the root directories.
+    """
+
+    if full_scan:
+        prepare_full_scan()
+
     IndexTracks()
 
     key = str(time())
@@ -38,6 +71,8 @@ def index_everything():
     map_scrobble_data()
     map_favorites()
 
-    CordinateMedia(instance_key=str(time()))
+    CordinateMedia(instance_key=str(time()), overwrite_track_thumbnails=full_scan)
+    GeneralStore.end_full_scan()
+
     gc.collect()
     log.info("Indexing completed")

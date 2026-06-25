@@ -121,3 +121,10 @@ class AlbumStore:
             return []
 
         return TrackStore.get_tracks_by_trackhashes(album.trackhashes)
+
+    @classmethod
+    def reset(cls):
+        """
+        Resets the album store.
+        """
+        cls.albummap = dict()

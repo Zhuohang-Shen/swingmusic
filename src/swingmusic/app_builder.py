@@ -232,6 +232,7 @@ def get_onboarding_data():
         "rootDirsSet": GeneralStore.root_dirs_set,
         "adminExists": GeneralStore.admin_exists,
         "scanMessage": GeneralStore.scan_message,
+        "fullScanInProgress": GeneralStore.full_scan_in_progress,
     }
 
     # INFO: If request is authenticated, include user home directory
