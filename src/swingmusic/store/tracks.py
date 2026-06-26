@@ -189,16 +189,36 @@ class TrackStore:
         return len(cls.trackhashmap.get(trackhash, []))
 
     @classmethod
-    def is_valid_track_filepath(cls, trackhash: str, filepath: str) -> bool:
+    def get_track(cls, trackhash: str, filepath: str | None = None) -> Track | None:
         """
-        Returns True only if `filepath` belongs to an indexed track.
+        Returns a single track for the given trackhash, or None if the trackhash
+        is not indexed (or `filepath` is given but matches no track in the group).
+
+        Without `filepath`, the best (highest-bitrate) track is returned. With a
+        `filepath`, the specific duplicate whose path matches is returned; both
+        the supplied path and each candidate are canonicalized with
+        Path.resolve() so symlinks/`..`/redundant separators do not mismatch.
         """
         group = cls.trackhashmap.get(trackhash, None)
         if group is None:
-            return False
+            return None
 
-        target = Path(filepath).resolve()
-        return any(Path(track.filepath).resolve() == target for track in group.tracks)
+        if filepath:
+            target = Path(filepath).resolve()
+            return next(
+                (t for t in group.tracks if Path(t.filepath).resolve() == target),
+                None,
+            )
+
+        return group.get_best()
+
+    @classmethod
+    def is_valid_track_filepath(cls, trackhash: str, filepath: str) -> bool:
+        """
+        Returns True only if `filepath` belongs to an indexed track under
+        `trackhash`. Used to authorize raw filepaths supplied by clients.
+        """
+        return bool(filepath) and cls.get_track(trackhash, filepath) is not None
 
     @classmethod
     def get_tracks_by_trackhashes(cls, trackhashes: Iterable[str]) -> list[Track]:

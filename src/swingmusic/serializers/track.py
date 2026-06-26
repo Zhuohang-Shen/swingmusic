@@ -32,6 +32,7 @@ def serialize_track(track: Track, to_remove:set=set(), remove_disc:bool=True) ->
         "lastplayed",
         "playduration",
         "genres",
+        "extra",
         *to_remove,
         *album_keys,
     }

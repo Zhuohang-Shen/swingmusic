@@ -20,6 +20,7 @@ from swingmusic.api import (
     getall,
     auth,
     stream,
+    track,
     backup_and_restore,
 )
 
@@ -28,7 +29,7 @@ from swingmusic.api.sse import api as events
 
 __all__ = [
     "album", "artist", "collections", "colors", "favorites", "folder", "imgserver", "playlist", "search", "settings",
-    "lyrics", "plugins", "scrobble", "home", "getall", "auth", "stream", "backup_and_restore", "events",
+    "lyrics", "plugins", "scrobble", "home", "getall", "auth", "stream", "track", "backup_and_restore", "events",
 
     "lyrics_plugin",
 ]
