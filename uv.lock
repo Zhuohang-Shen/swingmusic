@@ -1089,6 +1089,15 @@ wheels = [
 ]
 
 [[package]]
+name = "mutagen"
+version = "1.48.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/df/70/1675da133ea92227da41bf5b24e1c66be597ff736a1533ade41da986852f/mutagen-1.48.1.tar.gz", hash = "sha256:8f95637ab9f6f305cec6bd1294e197debe207998e3e068596563c74f86b0a173", size = 1276978, upload-time = "2026-06-25T09:47:32.443Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/47/d8/a29e4e3991765e7ce4ed1f7e4074fe1ba9da03e0048639734de60f9cadb9/mutagen-1.48.1-py3-none-any.whl", hash = "sha256:4f077fe87d3fc7fba259aa63d8c026b18382ca6a42ef37c61e16f1b1b5b82fe7", size = 195706, upload-time = "2026-06-25T09:47:30.296Z" },
+]
+
+[[package]]
 name = "natsort"
 version = "8.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1912,6 +1921,9 @@ dependencies = [
     { name = "pyxdg", marker = "sys_platform == 'linux'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/86/5e/1092f0054bd939d7ea471b06e2ab7895ebb5d6f7a7c2e736d0d1ce079582/show_in_file_manager-1.1.6.tar.gz", hash = "sha256:559b596e3e563800cf69d734cd236824279a9d820d1d841640c5f13e0058f9b6", size = 37156, upload-time = "2026-02-17T06:58:05.042Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ee/20/e509861b30f1bf30929c964d595efe08a2c63287cdfe0afe73884293cc39/show_in_file_manager-1.1.6-py3-none-any.whl", hash = "sha256:3c0e5287b61e69bbd488e65cdf50999d237ad4305c2e6e9c2e4d333c02b4fd10", size = 32952, upload-time = "2026-06-15T23:44:41.625Z" },
+]
 
 [[package]]
 name = "simple-websocket"
@@ -2013,6 +2025,7 @@ dependencies = [
     { name = "granian" },
     { name = "locust" },
     { name = "memory-profiler" },
+    { name = "mutagen" },
     { name = "natsort" },
     { name = "nuitka" },
     { name = "pendulum" },
@@ -2061,6 +2074,7 @@ requires-dist = [
     { name = "granian", specifier = ">=2.5.5" },
     { name = "locust", specifier = ">=2.20.1" },
     { name = "memory-profiler", specifier = ">=0.61.0" },
+    { name = "mutagen", specifier = ">=1.48.1" },
     { name = "natsort", specifier = ">=8.4.0" },
     { name = "nuitka", specifier = ">=4.0.8" },
     { name = "nuitka", marker = "extra == 'build'", specifier = ">=4.0.8" },
@@ -2077,7 +2091,7 @@ requires-dist = [
     { name = "sortedcontainers", specifier = ">=2.4.0" },
     { name = "sqlalchemy", specifier = ">=2.0.31" },
     { name = "tabulate", specifier = ">=0.9.0" },
-    { name = "tinytag", specifier = ">=2.1.1" },
+    { name = "tinytag", specifier = ">=2.2.1" },
     { name = "tqdm", specifier = ">=4.65.0" },
     { name = "unidecode", specifier = ">=1.3.6" },
     { name = "waitress", specifier = ">=3.0.2" },

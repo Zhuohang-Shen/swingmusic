@@ -65,10 +65,10 @@ def find_thumbnail(albumhash: str, pathhash: str):
 
     # INFO: Check if the folder has image files
     extensions = [".jpg", ".jpeg", ".png", ".webp"]
-    hierarchy = ["cover", "front", "back", "folder", "album", "artwork"]
+    hierarchy = ["cover", "front", "disc", "tray", "back", "folder", "album", "artwork"]
 
     images: list[Path] = []
-    for item in folder.iterdir():
+    for item in folder.rglob("*"):
         if item.suffix in extensions:
             images.append(item)
 
@@ -125,7 +125,7 @@ def send_file_or_fallback(
 
         # INFO: Cache  and send the thumbnail
         if file is not None and parent is not None:
-            cache_thumbnails(parent / file, albumhash)
+            # cache_thumbnails(parent / file, albumhash)
             return send_from_directory(parent, file)
 
     return send_fallback_img(fallback)

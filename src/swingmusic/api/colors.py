@@ -16,7 +16,7 @@ def get_album_color(path: AlbumHashSchema):
 
     msg = {"color": ""}
 
-    if album is None or len(album.colors) == 0:
+    if album is None or len(album.color) == 0:
         return msg, 404
 
-    return {"color": album.colors[0]}
+    return {"color": album.color}
