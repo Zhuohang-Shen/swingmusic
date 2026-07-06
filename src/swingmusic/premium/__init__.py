@@ -9,6 +9,7 @@ CloudClient = None
 LicenseValidation = None
 MixesCron = None
 mixes_api = None
+ClassicalStore = None
 
 
 # Real exception classes are defined here as stubs. When premium source is
@@ -88,6 +89,7 @@ try:
     from swingmusic.premium.mixes_cron import Mixes as MixesCron  # noqa: F401
     from swingmusic.premium.api_routes import api as mixes_api  # noqa: F401
     from swingmusic.premium.recipes.because import BecauseYouListened  # noqa: F401
+    from swingmusic.premium.classical.classicalstore import ClassicalStore  # noqa: F401
 
     PREMIUM_AVAILABLE = True
 except ImportError:

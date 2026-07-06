@@ -55,6 +55,7 @@ class Track:
     _score: float = 0
     explicit: bool = False
     fav_userids: list[int] = field(default_factory=list)
+    is_classical: bool = False
 
     @property
     def is_favorite(self):

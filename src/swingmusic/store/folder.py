@@ -27,16 +27,17 @@ class FolderStore:
     @classmethod
     def load_filepaths(cls):
         """
-        Load all the filepaths from the database into memory.
+        Load all the filepaths from the track store into memory.
 
         This is needed to speed up the process of counting the number of tracks in the folder page.
         """
         cls.filepaths.clear()
+        cls.map.clear()
 
-        tracks = TrackTable.get_all()
-        for track in tracks:
-            cls.filepaths.add(track.filepath)
-            cls.map[track.filepath] = track.trackhash
+        for group in TrackStore.trackhashmap.values():
+            for track in group.tracks:
+                cls.filepaths.add(track.filepath)
+                cls.map[track.filepath] = track.trackhash
 
 
     @classmethod

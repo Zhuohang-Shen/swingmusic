@@ -14,7 +14,9 @@ from swingmusic.lib.mapstuff import (
     map_artist_colors,
     map_favorites,
     map_scrobble_data,
+    map_trackhash_repairs,
 )
+from swingmusic.premium import ClassicalStore, LicenseError
 from swingmusic.setup.sqlite import setup_sqlite
 from swingmusic.store.albums import AlbumStore
 from swingmusic.store.artists import ArtistStore
@@ -105,7 +107,16 @@ def load_into_mem():
     ArtistStore.load_artists(key)
     FolderStore.load_filepaths()
 
+    # INFO: Re-key orphaned user data before mapping it
+    map_trackhash_repairs()
+
     map_scrobble_data()
     map_favorites()
     map_artist_colors()
     map_album_colors()
+
+    if ClassicalStore is not None:
+        try:
+            ClassicalStore.load_albums(key)
+        except LicenseError:
+            pass

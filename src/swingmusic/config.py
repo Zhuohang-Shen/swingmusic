@@ -93,6 +93,9 @@ class UserConfig(metaclass=Singleton):
     # license
     licenseKey: str = ""
 
+    # classical support
+    classicalEnabled: bool = True
+
     artistSortingArticles: set[str] = field(
         default_factory=lambda: (
             {

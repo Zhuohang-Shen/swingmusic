@@ -8,6 +8,7 @@ from swingmusic.db.libdata import TrackTable
 
 from swingmusic.models import Track
 from swingmusic.utils import classproperty
+from swingmusic.utils.hashing import create_hash
 from swingmusic.utils.auth import get_current_userid
 from swingmusic.utils.remove_duplicates import remove_duplicates
 
@@ -111,7 +112,46 @@ class TrackStore:
             else:
                 cls.trackhashmap[track.trackhash].append(track)
 
+        for trackhash in list(cls.trackhashmap.keys()):
+            cls._split_album_collisions(trackhash)
+
         print("Done!")
+
+    @classmethod
+    def _split_album_collisions(cls, trackhash: str):
+        """
+        Splits a track group that merged DIFFERENT tracks of the same album.
+
+        Same album + different disc/track position should be different tracks.
+        Let the lowest position keep the original hash, other positions move to a position-salted hash.
+        """
+        group = cls.trackhashmap.get(trackhash)
+        if group is None or len(group.tracks) < 2:
+            return
+
+        # {albumhash: {(disc, track): [tracks]}}
+        by_album: dict[str, dict[tuple[int, int], list[Track]]] = {}
+        for track in group.tracks:
+            positions = by_album.setdefault(track.albumhash, {})
+            positions.setdefault((track.disc, track.track), []).append(track)
+
+        for positions in by_album.values():
+            if len(positions) < 2:
+                continue
+
+            # the lowest (disc, track) keeps the original trackhash
+            for disc, trackno in sorted(positions.keys())[1:]:
+                salted = create_hash(trackhash, str(disc), str(trackno))
+
+                for track in positions[(disc, trackno)]:
+                    group.tracks.remove(track)
+                    track.trackhash = salted
+
+                    salted_group = cls.trackhashmap.get(salted)
+                    if salted_group is not None:
+                        salted_group.append(track)
+                    else:
+                        cls.trackhashmap[salted] = TrackGroup([track])
 
     @classmethod
     def add_track(cls, track: Track):
@@ -121,7 +161,9 @@ class TrackStore:
         group = cls.trackhashmap.get(track.trackhash, None)
 
         if group:
-            return group.append(track)
+            group.append(track)
+            cls._split_album_collisions(track.trackhash)
+            return
 
         cls.trackhashmap[track.trackhash] = TrackGroup([track])
 

@@ -127,6 +127,24 @@ class ParseData:
         self.artist = split_artists(self.artist, self.config)
 
 
+def join_multivalue_tag(values: list | None) -> str:
+    """
+    Joins a multi-value tag field (eg. multiple ARTIST frames) into one
+    ";"-separated string, deduplicated case-insensitively, preserving file
+    order. ";" is a default artist separator, so the values survive the
+    round trip through Track.split_artists.
+    """
+    seen: set[str] = set()
+    joined: list[str] = []
+
+    for value in values or []:
+        if isinstance(value, str) and value and value.lower() not in seen:
+            seen.add(value.lower())
+            joined.append(value)
+
+    return "; ".join(joined)
+
+
 def extract_artist_title(filename: str, config: UserConfig):
     """
     extract data from filename with specified separators
@@ -194,10 +212,16 @@ def get_tags(filepath: str, config: UserConfig) -> dict:
     if date is None:
         date = int(last_mod)
 
+    # INFO: TinyTag properties only expose the FIRST value of multi-value
+    # fields (multiple ARTIST frames); as_dict() has all of them in file
+    # order. Join with ";" so Track.split_artists reconstructs the list.
+    all_tags = tags.as_dict()
+
     metadata: dict[str, Any] = {
         "album": tags.album,
-        "albumartists": tags.albumartist,
-        "artists": tags.artist,
+        "albumartists": join_multivalue_tag(all_tags.get("albumartist"))
+        or tags.albumartist,
+        "artists": join_multivalue_tag(all_tags.get("artist")) or tags.artist,
         "title": tags.title,
         "last_mod": last_mod,
         "filepath": filepath.as_posix(),

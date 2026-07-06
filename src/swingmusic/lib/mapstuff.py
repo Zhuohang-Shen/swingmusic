@@ -1,10 +1,71 @@
 from swingmusic.db.userdata import LibDataTable, FavoritesTable, ScrobbleTable
 from swingmusic.store.albums import AlbumStore
 from swingmusic.store.artists import ArtistStore
+from swingmusic.store.folder import FolderStore
 from swingmusic.store.tracks import TrackStore
 
 
 from typing import Any
+
+
+def map_trackhash_repairs():
+    """
+    Repairs trackhash-keyed user data (scrobbles and track favorites) whose
+    trackhash no longer resolves — eg. after files were retagged or the
+    hashing inputs changed.
+    """
+    basename_index: dict[str, list[str]] | None = None
+
+    def resolve(filepath: str | None) -> str | None:
+        nonlocal basename_index
+
+        if not filepath:
+            return None
+
+        trackhash = FolderStore.map.get(filepath)
+        if trackhash is not None:
+            return trackhash
+
+        if basename_index is None:
+            basename_index = {}
+            for path in FolderStore.map:
+                basename_index.setdefault(path.rsplit("/", 1)[-1], []).append(path)
+
+        candidates = basename_index.get(filepath.rsplit("/", 1)[-1], [])
+        if len(candidates) == 1:
+            return FolderStore.map.get(candidates[0])
+
+        # ambiguous or missing — leave the entry alone
+        return None
+
+    # distinct orphaned trackhash -> stored filepath
+    orphans: dict[str, str | None] = {}
+    for record in ScrobbleTable.get_all_unfiltered():
+        if record.trackhash not in TrackStore.trackhashmap:
+            orphans.setdefault(record.trackhash, (record.extra or {}).get("filepath"))
+
+    repaired = 0
+    for old, filepath in orphans.items():
+        new = resolve(filepath)
+        if new is not None:
+            ScrobbleTable.update_trackhash(old, new)
+            repaired += 1
+
+    fav_orphans: dict[str, str | None] = {}
+    for entry in FavoritesTable.get_all():
+        if entry.type != "track":
+            continue
+        if entry.hash not in TrackStore.trackhashmap:
+            fav_orphans.setdefault(entry.hash, (entry.extra or {}).get("filepath"))
+
+    for old, filepath in fav_orphans.items():
+        new = resolve(filepath)
+        if new is not None:
+            FavoritesTable.update_track_hash(old, new)
+            repaired += 1
+
+    if repaired:
+        print(f"Repaired {repaired} user data trackhashes")
 
 
 def map_scrobble_data():

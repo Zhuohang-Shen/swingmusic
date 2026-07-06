@@ -230,6 +230,21 @@ class FavoritesTable(Base):
         )
 
     @classmethod
+    def update_track_hash(cls, old: str, new: str):
+        """
+        Re-keys a track favorite whose trackhash changed. Matches both the
+        prefixed and legacy unprefixed hash forms.
+        """
+        return next(
+            cls.execute(
+                update(cls)
+                .where(cls.hash.in_((f"track_{old}", old)))
+                .values(hash=f"track_{new}"),
+                commit=True,
+            )
+        )
+
+    @classmethod
     def check_exists(cls, hash: str, type: str):
         result = cls.execute(
             select(cls).where((cls.hash == hash) | (cls.hash == f"{type}_{hash}"))
@@ -348,6 +363,29 @@ class ScrobbleTable(Base):
 
         for i in next(result).scalars():
             yield tracklog_to_dataclass(i)
+
+    @classmethod
+    def get_all_unfiltered(cls):
+        """
+        All scrobbles for ALL users (the trackhash repair pass runs at
+        boot, outside any request context).
+        """
+        result = cls.execute(select(cls).execution_options(yield_per=100))
+
+        for i in next(result).scalars():
+            yield tracklog_to_dataclass(i)
+
+    @classmethod
+    def update_trackhash(cls, old: str, new: str):
+        """
+        Re-keys all scrobbles of a track whose trackhash changed.
+        """
+        return next(
+            cls.execute(
+                update(cls).where(cls.trackhash == old).values(trackhash=new),
+                commit=True,
+            )
+        )
 
     @classmethod
     def get_all_in_period(cls, start_time: int, end_time: int, userid: int | None):

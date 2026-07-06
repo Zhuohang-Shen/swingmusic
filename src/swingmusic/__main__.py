@@ -89,6 +89,7 @@ def run(*args, **kwargs):
             MixesCron,
             mixes_api,
             license_required,
+            ClassicalStore,
         )
 
         symbols = {
@@ -101,6 +102,7 @@ def run(*args, **kwargs):
             "MixesCron": MixesCron,
             "mixes_api": mixes_api,
             "license_required": license_required,
+            "ClassicalStore": ClassicalStore,
         }
 
         failed = [name for name, val in symbols.items() if val is None]
